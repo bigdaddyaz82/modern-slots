@@ -1,0 +1,88 @@
+body {
+  background: linear-gradient(135deg, #1e1e2f, #3a3a5c);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #f0e6d2;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+h1 {
+  margin-top: 20px;
+  font-size: 2.8rem;
+  text-shadow: 0 0 8px #ff6f61;
+}
+
+.slot-machine {
+  margin: 40px auto;
+  background: linear-gradient(145deg, #12121a, #2a2a42);
+  border-radius: 16px;
+  box-shadow: 0 0 30px #ff6f61, inset 0 0 20px #ff9a76;
+  width: 320px;
+  padding: 30px 20px;
+  user-select: none;
+  position: relative;
+}
+
+.reels {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 25px;
+}
+
+.reel {
+  background: #1f1f36;
+  border-radius: 12px;
+  width: 70px;
+  height: 70px;
+  font-size: 3.5rem;
+  line-height: 70px;
+  box-shadow:
+    0 0 8px #ff6f61,
+    inset 0 0 12px #ffa07a;
+  transition: transform 1s ease-in-out;
+}
+
+.spinning {
+  animation: spin-reel 1s linear infinite;
+}
+
+@keyframes spin-reel {
+  0% { transform: rotateX(0deg); }
+  100% { transform: rotateX(360deg); }
+}
+
+#spin {
+  background: linear-gradient(145deg, #ff6f61, #ff4433);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 1.6rem;
+  padding: 14px 40px;
+  cursor: pointer;
+  box-shadow:
+    0 5px 15px #ff3b20,
+    inset 0 -3px 8px #ff6f61;
+  transition: background 0.3s ease;
+  user-select: none;
+}
+
+#spin:hover {
+  background: linear-gradient(145deg, #ff4433, #ff6f61);
+}
+
+#result {
+  font-size: 1.8rem;
+  margin-top: 18px;
+  min-height: 40px;
+  text-shadow: 0 0 6px #ff9a76;
+}
+
+canvas#fireworks {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 9999;
+}
