@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Modern Dragon Slot Machine - Points Game</title>
+<title>Dragon Slot Machine - Points Game</title>
 <style>
   body {
     background: linear-gradient(135deg, #1e1e2f, #3a3a5c);
@@ -115,12 +115,6 @@
     color: #cc9966;
     text-shadow: 0 0 4px #cc9966;
   }
-  canvas#fireworks {
-    position: fixed;
-    top: 0; left: 0;
-    pointer-events: none;
-    z-index: 9999;
-  }
 </style>
 </head>
 <body>
@@ -141,8 +135,8 @@
   <div id="result"></div>
 </div>
 <footer>Brought to you by BigDaddyAG82</footer>
-<canvas id="fireworks"></canvas>
 
+<!-- Sound effects -->
 <audio id="sound-spin" src="https://actions.google.com/sounds/v1/cartoon/slide_whistle_to_drum_hit.ogg"></audio>
 <audio id="sound-win" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
 <audio id="sound-lose" src="https://actions.google.com/sounds/v1/cartoon/boing.ogg"></audio>
@@ -155,14 +149,10 @@
   const soundSpin = document.getElementById('sound-spin');
   const soundWin = document.getElementById('sound-win');
   const soundLose = document.getElementById('sound-lose');
-  const canvas = document.getElementById('fireworks');
-  const ctx = canvas.getContext('2d');
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
 
   let points = 0;
-  let dailyBonusKey = 'dragonSlotDailyBonus';
-  let pointsKey = 'dragonSlotPoints';
+  const dailyBonusKey = 'dragonSlotDailyBonus';
+  const pointsKey = 'dragonSlotPoints';
 
   // Load saved points or initialize
   function loadPoints() {
@@ -192,6 +182,7 @@
 
   function updatePointsDisplay() {
     pointsDisplay.textContent = `Points: ${points.toLocaleString()}`;
+    updateSpinButton();
   }
 
   // Cost selection buttons
@@ -204,70 +195,118 @@
       btn.classList.add('selected');
       currentCost = parseInt(btn.getAttribute('data-cost'));
       updateSpinButton();
+      resultDisplay.textContent = '';
     });
   });
 
   function updateSpinButton() {
     if (points < currentCost) {
       spinButton.disabled = true;
-      resultDisplay.textContent = 'Not enough points to spin!';
+      if (points === 0) {
+        resultDisplay.textContent = 'No points left! Reload to get your daily bonus.';
+      } else {
+        resultDisplay.textContent = 'Not enough points to spin!';
+      }
     } else {
       spinButton.disabled = false;
-      resultDisplay.textContent = '';
+      if (resultDisplay.textContent === 'Not enough points to spin!') {
+        resultDisplay.textContent = '';
+      }
     }
   }
 
   function getRandomSymbol() {
-    const index = Math.floor(Math.random() * symbols.length);
-    return symbols[index];
+    return symbols[Math.floor(Math.random() * symbols.length)];
   }
 
+  let spinning = false;
+
   spinButton.addEventListener('click', () => {
+    if (spinning) return; // prevent double spin
     if (points < currentCost) {
       resultDisplay.textContent = 'Not enough points to spin!';
-      spinButton.disabled = true;
       return;
     }
 
+    spinning = true;
+    spinButton.disabled = true;
+    resultDisplay.textContent = '';
     points -= currentCost;
     updatePointsDisplay();
     savePoints();
 
-    const reel1 = document.getElementById('reel1');
-    const reel2 = document.getElementById('reel2');
-    const reel3 = document.getElementById('reel3');
-
+    // Play spin sound
     soundSpin.currentTime = 0;
     soundSpin.play();
 
-    reel1.classList.add('spinning');
-    reel2.classList.add('spinning');
-    reel3.classList.add('spinning');
+    // Animate reels
+    const reels = [
+      document.getElementById('reel1'),
+      document.getElementById('reel2'),
+      document.getElementById('reel3')
+    ];
 
-    setTimeout(() => {
-      const roll = Math.random();
-      let s1, s2, s3;
+    // Add spinning class for animation
+    reels.forEach(reel => reel.classList.add('spinning'));
 
-      if (roll < 0.02) {
-        // Jackpot: all three symbols the same
-        s1 = s2 = s3 = getRandomSymbol();
-        resultDisplay.textContent = `🎉 JACKPOT! 3 ${s1}'s! +100 points!`;
-        points += 100;
-        soundWin.currentTime = 0;
-        soundWin.play();
-        triggerFireworks();
-      } else if (roll < 0.18) {
-        // Pair: two symbols the same
-        s1 = getRandomSymbol();
-        s2 = s1;
-        do {
-          s3 = getRandomSymbol();
-        } while (s3 === s1);
-        resultDisplay.textContent = `🔥 You got a pair! +20 points!`;
-        points += 20;
-        soundWin.currentTime = 0;
-        soundWin.play();
-      } else {
-        // Lose: all symbols different
-        do {
-          s1 =
+    // Spin for 1.5 seconds then stop one by one
+    const finalSymbols = [];
+    let stopCount = 0;
+
+    function stopReel(index) {
+      setTimeout(() => {
+        reels[index].classList.remove('spinning');
+        finalSymbols[index] = getRandomSymbol();
+        reels[index].textContent = finalSymbols[index];
+        stopCount++;
+        if (stopCount === 3) {
+          spinning = false;
+          spinButton.disabled = false;
+          evaluateSpin(finalSymbols);
+        }
+      }, 1500 + index * 400);
+    }
+
+    stopReel(0);
+    stopReel(1);
+    stopReel(2);
+  });
+
+  function evaluateSpin(results) {
+    // Count matches
+    const [a, b, c] = results;
+
+    if (a === b && b === c) {
+      // Jackpot: 1000 points reward
+      const jackpotReward = 1000;
+      points += jackpotReward;
+      updatePointsDisplay();
+      savePoints();
+      resultDisplay.textContent = `🎉 JACKPOT! You won ${jackpotReward} points!`;
+      soundWin.currentTime = 0;
+      soundWin.play();
+    } else if (a === b || b === c || a === c) {
+      // Pair: 250 points reward
+      const pairReward = 250;
+      points += pairReward;
+      updatePointsDisplay();
+      savePoints();
+      resultDisplay.textContent = `👍 Nice! You won ${pairReward} points for a pair!`;
+      soundWin.currentTime = 0;
+      soundWin.play();
+    } else {
+      // No win
+      resultDisplay.textContent = 'Try again!';
+      soundLose.currentTime = 0;
+      soundLose.play();
+    }
+  }
+
+  // Initialize on page load
+  window.onload = () => {
+    loadPoints();
+    checkDailyBonus();
+  };
+</script>
+</body>
+</html>
