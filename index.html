@@ -1,0 +1,171 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dragon Slots</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      background: linear-gradient(to right, #1e1e2f, #2c3e50);
+      color: white;
+      text-align: center;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }.slot-machine {
+  display: flex;
+  justify-content: center;
+  margin: 30px 0;
+}
+
+.reel {
+  font-size: 60px;
+  background: #111;
+  border: 3px solid #ffd700;
+  padding: 20px;
+  margin: 0 10px;
+  border-radius: 10px;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 20px #ffd700;
+}
+
+.reel.spinning {
+  animation: spin 0.5s infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotateX(0); }
+  100% { transform: rotateX(360deg); }
+}
+
+#spin {
+  background: #ff5c5c;
+  color: white;
+  padding: 15px 40px;
+  font-size: 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 0 10px red;
+}
+
+#spin:hover {
+  background: #ff1c1c;
+}
+
+#result {
+  margin-top: 20px;
+  font-size: 24px;
+}
+
+  </style>
+</head>
+<body>
+  <h1>🐉 Dragon Slots</h1>  <div class="slot-machine">
+    <div class="reel" id="reel1">?</div>
+    <div class="reel" id="reel2">?</div>
+    <div class="reel" id="reel3">?</div>
+  </div><button id="spin">🎰 Spin!</button>
+
+  <div id="result"></div>  <footer>
+    <p>Powered by Crypto Carnival</p>
+  </footer>  <!-- Audio Effects --><audio id="sound-win" src="https://freesound.org/data/previews/276/276033_2736250-lq.mp3"></audio> <audio id="sound-spin" src="https://freesound.org/data/previews/540/540404_9034500-lq.mp3"></audio> <audio id="sound-lose" src="https://freesound.org/data/previews/512/512149_10226524-lq.mp3"></audio>
+
+  <!-- Particle Explosion (Fireworks on Jackpot) --><canvas id="fireworks" style="position: fixed; top: 0; left: 0; pointer-events: none; width: 100%; height: 100%;"></canvas>
+
+  <script>
+    const symbols = ['🐉', '💎', '🔥', '🪙', '👑', '⚔️', '🧝', '🦄', '🍀', '🔮'];
+    const spinButton = document.getElementById('spin');
+    const resultDisplay = document.getElementById('result');
+    const soundSpin = document.getElementById('sound-spin');
+    const soundWin = document.getElementById('sound-win');
+    const soundLose = document.getElementById('sound-lose');
+    const canvas = document.getElementById('fireworks');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    function getRandomSymbol() {
+      const index = Math.floor(Math.random() * symbols.length);
+      return symbols[index];
+    }
+
+    spinButton.addEventListener('click', () => {
+      const reel1 = document.getElementById('reel1');
+      const reel2 = document.getElementById('reel2');
+      const reel3 = document.getElementById('reel3');
+
+      soundSpin.play();
+      reel1.classList.add('spinning');
+      reel2.classList.add('spinning');
+      reel3.classList.add('spinning');
+
+      setTimeout(() => {
+        const roll = Math.random();
+        let s1, s2, s3;
+
+        if (roll < 0.02) {
+          s1 = s2 = s3 = getRandomSymbol();
+          resultDisplay.textContent = `🎉 JACKPOT! 3 ${s1}'s!`;
+          soundWin.play();
+          triggerFireworks();
+        } else if (roll < 0.18) {
+          s1 = getRandomSymbol();
+          s2 = s1;
+          do {
+            s3 = getRandomSymbol();
+          } while (s3 === s1);
+          resultDisplay.textContent = `🔥 You got a pair!`;
+          soundWin.play();
+        } else {
+          do {
+            s1 = getRandomSymbol();
+            s2 = getRandomSymbol();
+            s3 = getRandomSymbol();
+          } while (s1 === s2 || s2 === s3 || s1 === s3);
+          resultDisplay.textContent = `😢 Try again!`;
+          soundLose.play();
+        }
+
+        reel1.textContent = s1;
+        reel2.textContent = s2;
+        reel3.textContent = s3;
+
+        reel1.classList.remove('spinning');
+        reel2.classList.remove('spinning');
+        reel3.classList.remove('spinning');
+      }, 1000);
+    });
+
+    // Fireworks animation
+    function triggerFireworks() {
+      let particles = [];
+      for (let i = 0; i < 100; i++) {
+        particles.push({
+          x: canvas.width / 2,
+          y: canvas.height / 2,
+          vx: (Math.random() - 0.5) * 6,
+          vy: (Math.random() - 0.5) * 6,
+          alpha: 1,
+          radius: Math.random() * 3 + 2
+        });
+      }
+      let interval = setInterval(() => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255, 215, 0, ${p.alpha})`;
+          ctx.fill();
+          p.x += p.vx;
+          p.y += p.vy;
+          p.alpha -= 0.02;
+        });
+        particles = particles.filter(p => p.alpha > 0);
+        if (particles.length === 0) clearInterval(interval);
+      }, 30);
+    }
+  </script></body>
+</html>
