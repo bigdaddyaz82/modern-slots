@@ -277,8 +277,8 @@
     const [a, b, c] = results;
 
     if (a === b && b === c) {
-      // Jackpot: 1000 points reward
-      const jackpotReward = 1000;
+      // Jackpot: 1000000000000 points reward
+      const jackpotReward = 1000000000000;
       points += jackpotReward;
       updatePointsDisplay();
       savePoints();
@@ -286,8 +286,8 @@
       soundWin.currentTime = 0;
       soundWin.play();
     } else if (a === b || b === c || a === c) {
-      // Pair: 250 points reward
-      const pairReward = 250;
+      // Pair: 250000000 points reward
+      const pairReward = 250000000;
       points += pairReward;
       updatePointsDisplay();
       savePoints();
